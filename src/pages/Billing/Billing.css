@@ -1,9 +1,64 @@
-/* Billing Page Specific Styles */
+/* Billing Page & Authentic Print Styles for Rajmoni Jewellers */
 
-.billing-page-container {
-  /* Dedicated styles for Billing / Invoice Printing Page */
+/* Interactive Sales Workspace Layout */
+.billing-workspace {
+  font-family: 'Inter', sans-serif;
 }
 
-.billing-preview-card {
-  /* Invoice preview card wrapper */
+/* Print Invoice Sheet Styling */
+.print-invoice-sheet {
+  font-family: 'Courier New', Courier, monospace, serif;
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #000000;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* Print Specific Rules */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  #printable-invoice,
+  #printable-invoice * {
+    visibility: visible;
+  }
+
+  #printable-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 10px;
+    border: none;
+  }
+}
+
+/* Invoice Table Border Grid */
+.invoice-table-grid {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.invoice-table-grid th,
+.invoice-table-grid td {
+  border: 1px solid #000000;
+  padding: 4px 6px;
+  font-size: 11px;
+}
+
+.invoice-table-grid th {
+  font-weight: bold;
+  text-align: center;
+  background-color: #f8fafc;
 }
