@@ -5,15 +5,17 @@ import './Billing.css';
 /**
  * Billing Page Component
  * 
- * Interactive Sales Entry & Authentic Bill Printing Generator for Rajmoni Jewellers.
- * Matches the exact paper invoice format used by Rajmoni Jewellers.
+ * Clean Sales Entry Workflow & Modal-based Authentic Bill Printing for Rajmoni Jewellers.
+ * No real-time bill visible on data entry screen; pops up on "Generate & Print Bill".
  */
 export default function Billing() {
+  // Modal visibility state for bill print preview
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
   // ------------------------------------------------------------------
-  // 1. Shop Header Info (Configurable)
+  // 1. Shop Header Info
   // ------------------------------------------------------------------
   const [shopPhone, setShopPhone] = useState('9830000000 / 9831000000');
-  const [shopCalling, setShopCalling] = useState('9830000000');
   const [shopEmail, setShopEmail] = useState('rajmonijewellers@gmail.com');
   const [shopGstin, setShopGstin] = useState('19AAAAA0000A1ZR');
 
@@ -29,7 +31,7 @@ export default function Billing() {
   );
 
   // ------------------------------------------------------------------
-  // 3. Customer (Receiver & Consignee) Details State
+  // 3. Customer Details State
   // ------------------------------------------------------------------
   const [receiver, setReceiver] = useState({
     name: 'SARBANI DHAR',
@@ -53,7 +55,7 @@ export default function Billing() {
   });
 
   // ------------------------------------------------------------------
-  // 4. Line Items State (Default item loaded from sample bill image)
+  // 4. Line Items State
   // ------------------------------------------------------------------
   const [items, setItems] = useState([
     {
@@ -117,7 +119,6 @@ export default function Billing() {
     const updated = [...items];
     const item = { ...updated[index], [field]: val };
 
-    // Auto calculate Item Value = netWeight * ratePerGm
     const netWt = Number(field === 'netWeight' ? val : item.netWeight) || 0;
     const rate = Number(field === 'ratePerGm' ? val : item.ratePerGm) || 0;
     const itemValue = Number((netWt * rate).toFixed(2));
@@ -163,7 +164,7 @@ export default function Billing() {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const handlePrint = () => {
+  const triggerPrintWindow = () => {
     window.print();
   };
 
@@ -171,55 +172,46 @@ export default function Billing() {
     <div className="billing-workspace space-y-6">
       
       {/* ------------------------------------------------------------- */}
-      {/* Top Action Bar (No Print) */}
+      {/* Top Action Bar */}
       {/* ------------------------------------------------------------- */}
-      <div className="no-print flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Sales Billing & GST Invoice Generator
+            Sales Billing & Entry
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Rajmoni Jewellers authentic sale invoice format (Madhyamgram, Kolkata)
+            Rajmoni Jewellers - Clean sales entry workflow. Click "Generate & Print Bill" to view paper invoice.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={handlePrint}
+            onClick={() => setIsPreviewModalOpen(true)}
             className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 shadow-md hover:bg-amber-400 focus:outline-none transition"
           >
-            <span>🖨️ Print GST Invoice</span>
+            <span>🧾 Generate & Print Bill</span>
           </button>
         </div>
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* Interactive Form Controls Workspace (No Print) */}
+      {/* Sales Entry Workspace (Clean Input Form & Table) */}
       {/* ------------------------------------------------------------- */}
-      <div className="no-print space-y-6">
+      <div className="space-y-6">
         
-        {/* Section A: Hidden / Editable Shop Details */}
+        {/* Section A: Shop Contact Metadata */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
-            Shop Details & Hidden Contact Info
+            Shop Details & Credentials
           </h3>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div>
               <label className="block text-[11px] font-semibold text-slate-600">Phone Numbers</label>
               <input
                 type="text"
                 value={shopPhone}
                 onChange={(e) => setShopPhone(e.target.value)}
-                className="w-full rounded border border-slate-300 p-2 text-xs"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600">Calling Number (Footer)</label>
-              <input
-                type="text"
-                value={shopCalling}
-                onChange={(e) => setShopCalling(e.target.value)}
                 className="w-full rounded border border-slate-300 p-2 text-xs"
               />
             </div>
@@ -250,7 +242,7 @@ export default function Billing() {
           {/* Invoice Meta */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Invoice Meta Details
+              Invoice Details
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -296,7 +288,7 @@ export default function Billing() {
           {/* Billed To Customer */}
           <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Details of Receiver (Billed To)
+              Customer Details (Billed To)
             </h3>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -335,7 +327,7 @@ export default function Billing() {
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Jewelry Sales Line Items
+              Sale Items List
             </h3>
             <button
               type="button"
@@ -460,10 +452,10 @@ export default function Billing() {
           </div>
         </div>
 
-        {/* Section D: Additional Financial Adjustments */}
+        {/* Section D: Payment Mode & Discounts */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
-            Payment Mode & Adjustments
+            Payment Mode & Financial Summary
           </h3>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
             <div>
@@ -516,267 +508,334 @@ export default function Billing() {
               />
             </div>
           </div>
+
+          {/* Quick Summary Strip */}
+          <div className="mt-4 flex flex-wrap items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-800">
+            <div>Taxable: ₹{taxableAmount} | SGST (1.5%): ₹{sgstAmount} | CGST (1.5%): ₹{cgstAmount}</div>
+            <div className="text-base font-black text-amber-600">Grand Total: ₹{grandTotal}</div>
+          </div>
+        </div>
+
+        {/* Generate Button at bottom */}
+        <div className="flex justify-end pt-2">
+          <button
+            type="button"
+            onClick={() => setIsPreviewModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-extrabold text-slate-950 shadow-md hover:bg-amber-400 transition"
+          >
+            <span>🧾 Generate & Print Bill</span>
+          </button>
         </div>
 
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* 5. Authentic Printable Invoice (Exact replica of customer paper bill) */}
+      {/* Modal Dialog for Bill Print Preview */}
       {/* ------------------------------------------------------------- */}
-      <div id="printable-invoice" className="print-invoice-sheet text-xs">
-        
-        {/* Top Right Header Copy Mark */}
-        <div className="text-right text-[10px] italic">
-          Original for Buyer
-        </div>
-
-        {/* Shop Name & Header */}
-        <div className="text-center">
-          <h1 className="text-2xl font-black tracking-wider uppercase text-slate-900 border-b border-transparent">
-            RAJMONI JEWELLERS
-          </h1>
-          <p className="text-[11px] font-semibold mt-0.5">
-            74/3 SODPURE ROAD EAST
-          </p>
-          <p className="text-[11px] font-semibold">
-            MADHAMGRAM, KOLKATA-700129
-          </p>
-          <p className="text-[10px] mt-1">
-            Phone : {shopPhone} &nbsp; E-Mail : {shopEmail}
-          </p>
-          <p className="text-[10px] font-bold">
-            GSTIN : {shopGstin}
-          </p>
-          <div className="mt-1 font-bold tracking-widest text-sm uppercase underline decoration-1">
-            GST INVOICE
-          </div>
-        </div>
-
-        {/* Invoice Header Meta Table */}
-        <div className="mt-3 border border-black grid grid-cols-2 text-[11px]">
-          <div className="p-1.5 border-r border-black space-y-0.5">
-            <div><span className="font-bold">SALES PERSON:</span> {salesPerson}</div>
-            <div className="grid grid-cols-2">
-              <div><span className="font-bold">ORDER NO :</span> {orderNo}</div>
-              <div><span className="font-bold">INVOICE NO :</span> {invoiceNo}</div>
-            </div>
-            <div className="grid grid-cols-2">
-              <div><span className="font-bold">ORDER DATE :</span> {orderDate}</div>
-              <div><span className="font-bold">DATE :</span> {invoiceDate}</div>
-            </div>
-          </div>
-          <div className="p-1.5 space-y-0.5">
-            {/* Right side empty placeholder box matching exact bill header */}
-          </div>
-        </div>
-
-        {/* Receiver & Consignee Side-by-Side Box */}
-        <div className="border-x border-b border-black grid grid-cols-2 text-[10px]">
-          {/* Receiver */}
-          <div className="p-1.5 border-r border-black">
-            <div className="font-bold underline mb-0.5">Details of Receiver (Billed To) :</div>
-            <div className="font-bold">{receiver.name}</div>
-            <div>ADD: {receiver.address}</div>
-            <div>ADD: State : {receiver.state}</div>
-            <div>CONTACT NO : {receiver.contact}</div>
-            <div>GST NO.: {receiver.gstNo} PAN NO: {receiver.panNo}</div>
-            <div className="font-semibold">({receiver.stateCode})</div>
-          </div>
-
-          {/* Consignee */}
-          <div className="p-1.5">
-            <div className="font-bold underline mb-0.5">Details of Consignee (Shipped To) :</div>
-            <div className="font-bold">{consigneeSameAsReceiver ? receiver.name : consignee.name}</div>
-            <div>ADD: {consigneeSameAsReceiver ? receiver.address : consignee.address}</div>
-            <div>ADD: State : {consigneeSameAsReceiver ? receiver.state : consignee.state}</div>
-            <div>CONTACT NO : {consigneeSameAsReceiver ? receiver.contact : consignee.contact}</div>
-            <div>GST NO.: {consigneeSameAsReceiver ? receiver.gstNo : consignee.gstNo} PAN NO: {consigneeSameAsReceiver ? receiver.panNo : consignee.panNo}</div>
-            <div className="font-semibold">({consigneeSameAsReceiver ? receiver.stateCode : consignee.stateCode})</div>
-          </div>
-        </div>
-
-        {/* Main Items Grid Table */}
-        <table className="invoice-table-grid mt-[-1px]">
-          <thead>
-            <tr>
-              <th rowSpan="2" className="w-8">SL NO</th>
-              <th rowSpan="2">DESCRIPTION</th>
-              <th rowSpan="2" className="w-10">PCS</th>
-              <th rowSpan="2" className="w-12">HSN</th>
-              <th colSpan="5">GOLD / SILVER</th>
-              <th colSpan="2">DIAMOND/STONE</th>
-              <th colSpan="2">OTHERS</th>
-              <th rowSpan="2" className="w-24">TOTAL AMOUNT</th>
-            </tr>
-            <tr>
-              <th className="w-10">PURITY</th>
-              <th className="w-12">Gross Weight</th>
-              <th className="w-12">Net Weight</th>
-              <th className="w-16">RATE /GM</th>
-              <th className="w-16">VALUE</th>
-              <th className="w-12">Weight Cts</th>
-              <th className="w-14">Amount Rs</th>
-              <th className="w-12">Making Chg</th>
-              <th className="w-12">Hallmark Chg</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item, i) => (
-              <tr key={item.id} className="text-center">
-                <td>{i + 1}</td>
-                <td className="text-left font-bold">{item.description}</td>
-                <td>{item.pcs}</td>
-                <td>{item.hsn}</td>
-                <td>{item.purity}</td>
-                <td>{Number(item.grossWeight).toFixed(3)}</td>
-                <td>{Number(item.netWeight).toFixed(3)}</td>
-                <td>{item.ratePerGm}/gm</td>
-                <td>{item.value ? Number(item.value).toFixed(2) : '0.00'}</td>
-                <td>{Number(item.diamondCts).toFixed(2)}</td>
-                <td>{Number(item.diamondAmount).toFixed(2)}</td>
-                <td>{item.makingCharge}</td>
-                <td>{item.hallmarkCharge}</td>
-                <td className="text-right font-bold">{Number(item.totalAmount).toFixed(2)}</td>
-              </tr>
-            ))}
-
-            {/* Empty filler rows to maintain clean paper height */}
-            {Array.from({ length: Math.max(0, 4 - items.length) }).map((_, fillIdx) => (
-              <tr key={`fill-${fillIdx}`} className="h-6">
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-                <td>&nbsp;</td>
-              </tr>
-            ))}
-
-            {/* Total Row */}
-            <tr className="font-bold bg-slate-50 text-center">
-              <td colSpan="2" className="text-left">TOTAL</td>
-              <td>PCS: {totalPcs}</td>
-              <td>&nbsp;</td>
-              <td>&nbsp;</td>
-              <td>{totalGrossWeight.toFixed(3)}</td>
-              <td>{totalNetWeight.toFixed(3)}</td>
-              <td>0.00</td>
-              <td>{totalValue.toFixed(0)}</td>
-              <td>{totalDiamondCts.toFixed(2)}</td>
-              <td>{totalDiamondAmount.toFixed(0)}</td>
-              <td>{totalMakingCharge}</td>
-              <td>{totalHallmarkCharge}</td>
-              <td className="text-right">{itemsSubtotal.toFixed(0)}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        {/* Amount in Words & Payment Mode Row */}
-        <div className="border-x border-b border-black grid grid-cols-12 text-[10px]">
-          <div className="col-span-8 p-1.5 border-r border-black space-y-1">
-            <div className="font-bold italic">
-              {amountInWords}
-            </div>
-            <div className="flex items-center gap-4 pt-1 font-bold">
-              <span>MODE OF PAYMENT:</span>
-              <span className="uppercase">{paymentMode}</span>
-              <span className="ml-auto">{amountReceived.toFixed(2)}</span>
-            </div>
-          </div>
-
-          <div className="col-span-4 p-1.5 text-right space-y-0.5 font-bold">
-            <div className="flex justify-between">
-              <span>DISCOUNT</span>
-              <span>{discount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between border-t border-slate-300 pt-0.5">
-              <span>TAXABLE AMOUNT</span>
-              <span>{taxableAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-[9px] font-normal">
-              <span>SGST 1.50%</span>
-              <span>{sgstAmount.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-[9px] font-normal">
-              <span>CGST 1.50%</span>
-              <span>{cgstAmount.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Calculations Footer & Terms Grid */}
-        <div className="border-x border-b border-black grid grid-cols-12 text-[10px]">
+      {isPreviewModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
           
-          {/* Terms & Conditions (Exact text from authentic bill) */}
-          <div className="col-span-7 p-1.5 border-r border-black text-[9px] leading-tight space-y-0.5">
-            <div className="font-bold underline mb-0.5">Terms & Conditions</div>
-            <ol className="list-decimal list-inside space-y-0.5">
-              <li>In Case of jewellery order minimum 30% amount must be deposited to be Fixed on that day.</li>
-              <li>If the order jewellery is not taken within Three months, the price will change.</li>
-              <li>8.5% will be deducted for Gold jewellery sale and the bill must be Broght Along.</li>
-              <li>Goods are Forwarded at Consignee Risk Only.</li>
-              <li>Goods ones sold can not taken back or return.sold item exchanged in maximum 3 days only.</li>
-              <li>Whether gold was required to be declared under section 16 and it has been included in a declaration.</li>
-            </ol>
-          </div>
+          {/* Modal Container */}
+          <div className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-xl bg-white shadow-2xl overflow-hidden">
+            
+            {/* Modal Header Bar (No Print) */}
+            <div className="no-print flex items-center justify-between border-b border-slate-200 bg-slate-900 px-6 py-3 text-white">
+              <div className="flex items-center space-x-2">
+                <span>🧾</span>
+                <span className="font-bold text-sm">Rajmoni Jewellers - GST Invoice Preview</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <button
+                  type="button"
+                  onClick={triggerPrintWindow}
+                  className="rounded bg-amber-500 px-4 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow transition"
+                >
+                  🖨️ Print Now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsPreviewModalOpen(false)}
+                  className="rounded p-1 text-slate-400 hover:text-white"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
 
-          {/* Amount Breakdown */}
-          <div className="col-span-5 p-1.5 font-bold space-y-1">
-            <div className="flex justify-between">
-              <span>AMOUNT RECEIVED</span>
-              <span>{amountReceived.toFixed(0)}</span>
+            {/* Printable Sheet View Body */}
+            <div className="flex-1 overflow-y-auto p-6 bg-slate-100">
+              <div id="printable-invoice" className="print-invoice-sheet text-xs shadow-md">
+                
+                {/* Top Right Header Copy Mark */}
+                <div className="text-right text-[10px] italic">
+                  Original for Buyer
+                </div>
+
+                {/* Shop Name & Header */}
+                <div className="text-center">
+                  <h1 className="text-2xl font-black tracking-wider uppercase text-slate-900 border-b border-transparent">
+                    RAJMONI JEWELLERS
+                  </h1>
+                  <p className="text-[11px] font-semibold mt-0.5">
+                    74/3 SODPURE ROAD EAST
+                  </p>
+                  <p className="text-[11px] font-semibold">
+                    MADHAMGRAM, KOLKATA-700129
+                  </p>
+                  <p className="text-[10px] mt-1">
+                    Phone : {shopPhone} &nbsp; E-Mail : {shopEmail}
+                  </p>
+                  <p className="text-[10px] font-bold">
+                    GSTIN : {shopGstin}
+                  </p>
+                  <div className="mt-1 font-bold tracking-widest text-sm uppercase underline decoration-1">
+                    GST INVOICE
+                  </div>
+                </div>
+
+                {/* Invoice Header Meta Table */}
+                <div className="mt-3 border border-black grid grid-cols-2 text-[11px]">
+                  <div className="p-1.5 border-r border-black space-y-0.5">
+                    <div><span className="font-bold">SALES PERSON:</span> {salesPerson}</div>
+                    <div className="grid grid-cols-2">
+                      <div><span className="font-bold">ORDER NO :</span> {orderNo}</div>
+                      <div><span className="font-bold">INVOICE NO :</span> {invoiceNo}</div>
+                    </div>
+                    <div className="grid grid-cols-2">
+                      <div><span className="font-bold">ORDER DATE :</span> {orderDate}</div>
+                      <div><span className="font-bold">DATE :</span> {invoiceDate}</div>
+                    </div>
+                  </div>
+                  <div className="p-1.5 space-y-0.5">
+                    {/* Right side box matching exact bill header */}
+                  </div>
+                </div>
+
+                {/* Receiver & Consignee Side-by-Side Box */}
+                <div className="border-x border-b border-black grid grid-cols-2 text-[10px]">
+                  {/* Receiver */}
+                  <div className="p-1.5 border-r border-black">
+                    <div className="font-bold underline mb-0.5">Details of Receiver (Billed To) :</div>
+                    <div className="font-bold">{receiver.name}</div>
+                    <div>ADD: {receiver.address}</div>
+                    <div>ADD: State : {receiver.state}</div>
+                    <div>CONTACT NO : {receiver.contact}</div>
+                    <div>GST NO.: {receiver.gstNo} PAN NO: {receiver.panNo}</div>
+                    <div className="font-semibold">({receiver.stateCode})</div>
+                  </div>
+
+                  {/* Consignee */}
+                  <div className="p-1.5">
+                    <div className="font-bold underline mb-0.5">Details of Consignee (Shipped To) :</div>
+                    <div className="font-bold">{consigneeSameAsReceiver ? receiver.name : consignee.name}</div>
+                    <div>ADD: {consigneeSameAsReceiver ? receiver.address : consignee.address}</div>
+                    <div>ADD: State : {consigneeSameAsReceiver ? receiver.state : consignee.state}</div>
+                    <div>CONTACT NO : {consigneeSameAsReceiver ? receiver.contact : consignee.contact}</div>
+                    <div>GST NO.: {consigneeSameAsReceiver ? receiver.gstNo : consignee.gstNo} PAN NO: {consigneeSameAsReceiver ? receiver.panNo : consignee.panNo}</div>
+                    <div className="font-semibold">({consigneeSameAsReceiver ? receiver.stateCode : consignee.stateCode})</div>
+                  </div>
+                </div>
+
+                {/* Main Items Grid Table */}
+                <table className="invoice-table-grid mt-[-1px]">
+                  <thead>
+                    <tr>
+                      <th rowSpan="2" className="w-8">SL NO</th>
+                      <th rowSpan="2">DESCRIPTION</th>
+                      <th rowSpan="2" className="w-10">PCS</th>
+                      <th rowSpan="2" className="w-12">HSN</th>
+                      <th colSpan="5">GOLD / SILVER</th>
+                      <th colSpan="2">DIAMOND/STONE</th>
+                      <th colSpan="2">OTHERS</th>
+                      <th rowSpan="2" className="w-24">TOTAL AMOUNT</th>
+                    </tr>
+                    <tr>
+                      <th className="w-10">PURITY</th>
+                      <th className="w-12">Gross Weight</th>
+                      <th className="w-12">Net Weight</th>
+                      <th className="w-16">RATE /GM</th>
+                      <th className="w-16">VALUE</th>
+                      <th className="w-12">Weight Cts</th>
+                      <th className="w-14">Amount Rs</th>
+                      <th className="w-12">Making Chg</th>
+                      <th className="w-12">Hallmark Chg</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, i) => (
+                      <tr key={item.id} className="text-center">
+                        <td>{i + 1}</td>
+                        <td className="text-left font-bold">{item.description}</td>
+                        <td>{item.pcs}</td>
+                        <td>{item.hsn}</td>
+                        <td>{item.purity}</td>
+                        <td>{Number(item.grossWeight).toFixed(3)}</td>
+                        <td>{Number(item.netWeight).toFixed(3)}</td>
+                        <td>{item.ratePerGm}/gm</td>
+                        <td>{item.value ? Number(item.value).toFixed(2) : '0.00'}</td>
+                        <td>{Number(item.diamondCts).toFixed(2)}</td>
+                        <td>{Number(item.diamondAmount).toFixed(2)}</td>
+                        <td>{item.makingCharge}</td>
+                        <td>{item.hallmarkCharge}</td>
+                        <td className="text-right font-bold">{Number(item.totalAmount).toFixed(2)}</td>
+                      </tr>
+                    ))}
+
+                    {/* Empty filler rows to maintain clean paper height */}
+                    {Array.from({ length: Math.max(0, 4 - items.length) }).map((_, fillIdx) => (
+                      <tr key={`fill-${fillIdx}`} className="h-6">
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                      </tr>
+                    ))}
+
+                    {/* Total Row */}
+                    <tr className="font-bold bg-slate-50 text-center">
+                      <td colSpan="2" className="text-left">TOTAL</td>
+                      <td>PCS: {totalPcs}</td>
+                      <td>&nbsp;</td>
+                      <td>&nbsp;</td>
+                      <td>{totalGrossWeight.toFixed(3)}</td>
+                      <td>{totalNetWeight.toFixed(3)}</td>
+                      <td>0.00</td>
+                      <td>{totalValue.toFixed(0)}</td>
+                      <td>{totalDiamondCts.toFixed(2)}</td>
+                      <td>{totalDiamondAmount.toFixed(0)}</td>
+                      <td>{totalMakingCharge}</td>
+                      <td>{totalHallmarkCharge}</td>
+                      <td className="text-right">{itemsSubtotal.toFixed(0)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Amount in Words & Payment Mode Row */}
+                <div className="border-x border-b border-black grid grid-cols-12 text-[10px]">
+                  <div className="col-span-8 p-1.5 border-r border-black space-y-1">
+                    <div className="font-bold italic">
+                      {amountInWords}
+                    </div>
+                    <div className="flex items-center gap-4 pt-1 font-bold">
+                      <span>MODE OF PAYMENT:</span>
+                      <span className="uppercase">{paymentMode}</span>
+                      <span className="ml-auto">{amountReceived.toFixed(2)}</span>
+                    </div>
+                  </div>
+
+                  <div className="col-span-4 p-1.5 text-right space-y-0.5 font-bold">
+                    <div className="flex justify-between">
+                      <span>DISCOUNT</span>
+                      <span>{discount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-slate-300 pt-0.5">
+                      <span>TAXABLE AMOUNT</span>
+                      <span>{taxableAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-[9px] font-normal">
+                      <span>SGST 1.50%</span>
+                      <span>{sgstAmount.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-[9px] font-normal">
+                      <span>CGST 1.50%</span>
+                      <span>{cgstAmount.toFixed(2)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Calculations Footer & Terms Grid */}
+                <div className="border-x border-b border-black grid grid-cols-12 text-[10px]">
+                  
+                  {/* Terms & Conditions */}
+                  <div className="col-span-7 p-1.5 border-r border-black text-[9px] leading-tight space-y-0.5">
+                    <div className="font-bold underline mb-0.5">Terms & Conditions</div>
+                    <ol className="list-decimal list-inside space-y-0.5">
+                      <li>In Case of jewellery order minimum 30% amount must be deposited to be Fixed on that day.</li>
+                      <li>If the order jewellery is not taken within Three months, the price will change.</li>
+                      <li>8.5% will be deducted for Gold jewellery sale and the bill must be Broght Along.</li>
+                      <li>Goods are Forwarded at Consignee Risk Only.</li>
+                      <li>Goods ones sold can not taken back or return.sold item exchanged in maximum 3 days only.</li>
+                      <li>Whether gold was required to be declared under section 16 and it has been included in a declaration.</li>
+                    </ol>
+                  </div>
+
+                  {/* Amount Breakdown */}
+                  <div className="col-span-5 p-1.5 font-bold space-y-1">
+                    <div className="flex justify-between">
+                      <span>AMOUNT RECEIVED</span>
+                      <span>{amountReceived.toFixed(0)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-700">
+                      <span>ADVANCE PAYMENT</span>
+                      <span>{advancePayment}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-700">
+                      <span>OLD GOLD AMOUNT</span>
+                      <span>{oldGoldAmount}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-700">
+                      <span>BALANCE AMOUNT</span>
+                      <span>{balanceAmount}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-black pt-1 text-xs font-black text-slate-900">
+                      <span>GRAND TOTAL</span>
+                      <span>{grandTotal.toFixed(0)}</span>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* Signatures Area */}
+                <div className="border-x border-b border-black grid grid-cols-2 p-4 pt-8 text-[10px] font-bold">
+                  <div>
+                    <div className="border-t border-dashed border-slate-400 w-36 pt-1 text-center">
+                      CUSTOMER'S SIGNATURE
+                    </div>
+                  </div>
+
+                  <div className="text-right flex flex-col items-end">
+                    <div className="mb-6 font-bold">FOR RAJMONI JEWELLERS</div>
+                    <div className="border-t border-dashed border-slate-400 w-44 pt-1 text-center">
+                      AUTHORISED SIGNATORY.
+                    </div>
+                  </div>
+                </div>
+
+              </div>
             </div>
-            <div className="flex justify-between text-slate-700">
-              <span>ADVANCE PAYMENT</span>
-              <span>{advancePayment}</span>
+
+            {/* Modal Footer (No Print) */}
+            <div className="no-print flex justify-end gap-3 border-t border-slate-200 bg-white p-4">
+              <button
+                type="button"
+                onClick={() => setIsPreviewModalOpen(false)}
+                className="rounded border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100"
+              >
+                Close Preview
+              </button>
+              <button
+                type="button"
+                onClick={triggerPrintWindow}
+                className="rounded bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow"
+              >
+                🖨️ Print Now
+              </button>
             </div>
-            <div className="flex justify-between text-slate-700">
-              <span>OLD GOLD AMOUNT</span>
-              <span>{oldGoldAmount}</span>
-            </div>
-            <div className="flex justify-between text-slate-700">
-              <span>BALANCE AMOUNT</span>
-              <span>{balanceAmount}</span>
-            </div>
-            <div className="flex justify-between border-t border-black pt-1 text-xs font-black text-slate-900">
-              <span>GRAND TOTAL</span>
-              <span>{grandTotal.toFixed(0)}</span>
-            </div>
+
           </div>
 
         </div>
-
-        {/* Signatures Area */}
-        <div className="border-x border-b border-black grid grid-cols-2 p-4 pt-8 text-[10px] font-bold">
-          <div>
-            <div className="border-t border-dashed border-slate-400 w-36 pt-1 text-center">
-              CUSTOMER'S SIGNATURE
-            </div>
-          </div>
-
-          <div className="text-right flex flex-col items-end">
-            <div className="mb-6 font-bold">FOR RAJMONI JEWELLERS</div>
-            <div className="border-t border-dashed border-slate-400 w-44 pt-1 text-center">
-              AUTHORISED SIGNATORY.
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Attribution Line */}
-        <div className="mt-1 text-[8px] text-slate-600 text-center flex justify-between">
-          <span>MARG ERP NANO Rs.5550 | Manage Stock, Accounts, GST, Barcodeing</span>
-          <span>Call : {shopCalling}</span>
-        </div>
-
-      </div>
+      )}
 
     </div>
   );
