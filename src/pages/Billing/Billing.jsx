@@ -5,12 +5,18 @@ import './Billing.css';
 /**
  * Billing Page Component
  * 
- * Clean Sales Entry Workflow & Modal-based Authentic Bill Printing for Rajmoni Jewellers.
- * No real-time bill visible on data entry screen; pops up on "Generate & Print Bill".
+ * Client Demo Mode:
+ * 1. Every column field is EDITABLE manually (Description, Pcs, HSN, Purity, Gross Wt, Net Wt, Rate, Making, Hallmark).
+ * 2. Item Total Amount calculation = Rate entered (e.g. 100 in rate => total amount 100; 99 in rate => total amount 99).
+ * 3. Save Invoice workflow: Must click "Save Invoice" before "Generate & Print Bill" button is visible.
+ * 4. Static 3% GST breakdown (SGST 1.50% + CGST 1.50%).
  */
 export default function Billing() {
   // Modal visibility state for bill print preview
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
+  // Invoice Saved State (Save button must be clicked before Generate & Print Bill button is enabled)
+  const [isInvoiceSaved, setIsInvoiceSaved] = useState(false);
 
   // ------------------------------------------------------------------
   // 1. Shop Header Info
@@ -55,7 +61,7 @@ export default function Billing() {
   });
 
   // ------------------------------------------------------------------
-  // 4. Line Items State
+  // 4. Line Items State (Default item for demo)
   // ------------------------------------------------------------------
   const [items, setItems] = useState([
     {
@@ -66,27 +72,45 @@ export default function Billing() {
       purity: '22',
       grossWeight: 6.78,
       netWeight: 6.78,
-      ratePerGm: 13590,
-      value: 92140.2, // netWeight * ratePerGm
+      ratePerGm: 100, // Rate driving item total for client demo
+      value: 100,
       diamondCts: 0,
       diamondAmount: 0,
-      makingCharge: 8293,
-      hallmarkCharge: 55,
-      totalAmount: 100487.82,
+      makingCharge: 0,
+      hallmarkCharge: 0,
+      totalAmount: 100, // Matches rate per client instruction (100 -> 100)
     },
   ]);
 
   // ------------------------------------------------------------------
-  // 5. Payment & Additional Calculation State
+  // 5. Payment & Financial Adjustment State
   // ------------------------------------------------------------------
   const [paymentMode, setPaymentMode] = useState('CASH');
-  const [discount, setDiscount] = useState(2.0);
-  const [amountReceived, setAmountReceived] = useState(103500);
+  const [discount, setDiscount] = useState(0);
+  const [amountReceived, setAmountReceived] = useState(103);
   const [advancePayment, setAdvancePayment] = useState(0);
   const [oldGoldAmount, setOldGoldAmount] = useState(0);
 
+  /* ------------------------------------------------------------------
+   * OLD CALCULATION LOGIC (Commented for reference)
+   * ------------------------------------------------------------------
+  const totalPcsOld = items.reduce((sum, item) => sum + (Number(item.pcs) || 0), 0);
+  const totalGrossWeightOld = items.reduce((sum, item) => sum + (Number(item.grossWeight) || 0), 0);
+  const totalNetWeightOld = items.reduce((sum, item) => sum + (Number(item.netWeight) || 0), 0);
+  const totalValueOld = items.reduce((sum, item) => sum + (Number(item.value) || 0), 0);
+  const totalDiamondCtsOld = items.reduce((sum, item) => sum + (Number(item.diamondCts) || 0), 0);
+  const totalDiamondAmountOld = items.reduce((sum, item) => sum + (Number(item.diamondAmount) || 0), 0);
+  const totalMakingChargeOld = items.reduce((sum, item) => sum + (Number(item.makingCharge) || 0), 0);
+  const totalHallmarkChargeOld = items.reduce((sum, item) => sum + (Number(item.hallmarkCharge) || 0), 0);
+  const itemsSubtotalOld = items.reduce((sum, item) => sum + (Number(item.totalAmount) || 0), 0);
+  const taxableAmountOld = Math.max(0, itemsSubtotalOld - (Number(discount) || 0));
+  const sgstAmountOld = Number((taxableAmountOld * 0.015).toFixed(2));
+  const cgstAmountOld = Number((taxableAmountOld * 0.015).toFixed(2));
+  const grandTotalOld = Math.round(taxableAmountOld + sgstAmountOld + cgstAmountOld);
+  */
+
   // ------------------------------------------------------------------
-  // Calculations
+  // NEW CALCULATION LOGIC (Client Demo: Total Amount = Rate)
   // ------------------------------------------------------------------
   const totalPcs = items.reduce((sum, item) => sum + (Number(item.pcs) || 0), 0);
   const totalGrossWeight = items.reduce((sum, item) => sum + (Number(item.grossWeight) || 0), 0);
@@ -96,13 +120,16 @@ export default function Billing() {
   const totalDiamondAmount = items.reduce((sum, item) => sum + (Number(item.diamondAmount) || 0), 0);
   const totalMakingCharge = items.reduce((sum, item) => sum + (Number(item.makingCharge) || 0), 0);
   const totalHallmarkCharge = items.reduce((sum, item) => sum + (Number(item.hallmarkCharge) || 0), 0);
+
+  // Subtotal = Sum of Item Total Amounts (which equals sum of rates)
   const itemsSubtotal = items.reduce((sum, item) => sum + (Number(item.totalAmount) || 0), 0);
 
-  // Financial summary
+  // Static 3% GST Breakdown (SGST 1.50% + CGST 1.50% = 3% Total Static GST)
   const taxableAmount = Math.max(0, itemsSubtotal - (Number(discount) || 0));
   const sgstAmount = Number((taxableAmount * 0.015).toFixed(2)); // SGST 1.50%
   const cgstAmount = Number((taxableAmount * 0.015).toFixed(2)); // CGST 1.50%
-  const grandTotal = Math.round(taxableAmount + sgstAmount + cgstAmount);
+  const totalGstAmount = Number((sgstAmount + cgstAmount).toFixed(2)); // Static 3% Total GST
+  const grandTotal = Math.round(taxableAmount + totalGstAmount);
 
   const balanceAmount =
     grandTotal -
@@ -112,29 +139,46 @@ export default function Billing() {
 
   const amountInWords = numberToWordsIndian(grandTotal);
 
-  // ------------------------------------------------------------------
-  // Handlers
-  // ------------------------------------------------------------------
-  const handleItemChange = (index, field, val) => {
+  /* ------------------------------------------------------------------
+   * OLD ITEM CHANGE HANDLER (Commented for reference)
+   * ------------------------------------------------------------------
+  const handleItemChangeOld = (index, field, val) => {
     const updated = [...items];
     const item = { ...updated[index], [field]: val };
-
     const netWt = Number(field === 'netWeight' ? val : item.netWeight) || 0;
     const rate = Number(field === 'ratePerGm' ? val : item.ratePerGm) || 0;
     const itemValue = Number((netWt * rate).toFixed(2));
-
     const diaAmt = Number(field === 'diamondAmount' ? val : item.diamondAmount) || 0;
     const making = Number(field === 'makingCharge' ? val : item.makingCharge) || 0;
     const hallmark = Number(field === 'hallmarkCharge' ? val : item.hallmarkCharge) || 0;
-
     item.value = itemValue;
     item.totalAmount = Number((itemValue + diaAmt + making + hallmark).toFixed(2));
+    updated[index] = item;
+    setItems(updated);
+  };
+  */
+
+  // ------------------------------------------------------------------
+  // NEW ITEM CHANGE HANDLER (All fields manually editable, total = rate)
+  // ------------------------------------------------------------------
+  const handleItemChange = (index, field, val) => {
+    // Reset save status on edit so user must click Save Invoice again
+    setIsInvoiceSaved(false);
+
+    const updated = [...items];
+    const item = { ...updated[index], [field]: val };
+
+    // Total Amount calculation matches Rate exactly as per client instruction
+    const rateVal = Number(field === 'ratePerGm' ? val : item.ratePerGm) || 0;
+    item.value = rateVal;
+    item.totalAmount = rateVal; // 100 -> 100, 99 -> 99
 
     updated[index] = item;
     setItems(updated);
   };
 
   const handleAddItem = () => {
+    setIsInvoiceSaved(false);
     setItems([
       ...items,
       {
@@ -143,15 +187,15 @@ export default function Billing() {
         pcs: 1,
         hsn: '7113',
         purity: '22',
-        grossWeight: 0,
-        netWeight: 0,
-        ratePerGm: 0,
-        value: 0,
+        grossWeight: 1,
+        netWeight: 1,
+        ratePerGm: 100,
+        value: 100,
         diamondCts: 0,
         diamondAmount: 0,
         makingCharge: 0,
         hallmarkCharge: 0,
-        totalAmount: 0,
+        totalAmount: 100,
       },
     ]);
   };
@@ -161,7 +205,13 @@ export default function Billing() {
       alert('At least one item line must remain on bill.');
       return;
     }
+    setIsInvoiceSaved(false);
     setItems(items.filter((_, i) => i !== index));
+  };
+
+  // Save Invoice Handler (Locks calculations and enables Print button)
+  const handleSaveInvoice = () => {
+    setIsInvoiceSaved(true);
   };
 
   const triggerPrintWindow = () => {
@@ -172,23 +222,48 @@ export default function Billing() {
     <div className="billing-workspace space-y-6">
       
       {/* ------------------------------------------------------------- */}
-      {/* Top Action Bar */}
+      {/* Top Action Bar with Save & Generate/Print Buttons */}
       {/* ------------------------------------------------------------- */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
         <div>
           <p className="text-xs text-slate-500 mt-1">
-            Clean sales entry workflow. Click "Generate & Print Bill" to view paper invoice.
+            Rajmoni Jewellers - Every field manually editable for client demo. Click "Save Invoice" to enable printing.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
+          {/* 1. Save Invoice Button */}
           <button
             type="button"
-            onClick={() => setIsPreviewModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 shadow-md hover:bg-amber-400 focus:outline-none transition"
+            onClick={handleSaveInvoice}
+            className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-xs font-bold shadow-md transition ${
+              isInvoiceSaved
+                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                : 'bg-amber-500 text-slate-950 hover:bg-amber-400 animate-pulse'
+            }`}
           >
-            <span>🧾 Generate & Print Bill</span>
+            <span>{isInvoiceSaved ? '✅ Invoice Saved' : '💾 Save Invoice'}</span>
           </button>
+
+          {/* 2. Generate & Print Bill Button (Enabled ONLY after Save Invoice is clicked) */}
+          {isInvoiceSaved ? (
+            <button
+              type="button"
+              onClick={() => setIsPreviewModalOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-5 py-2.5 text-xs font-bold text-amber-400 shadow-md hover:bg-slate-800 transition"
+            >
+              <span>🧾 Generate & Print Bill</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="inline-flex items-center gap-2 rounded-lg bg-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-400 cursor-not-allowed border border-slate-300"
+              title="Please click Save Invoice first to enable Bill Printing"
+            >
+              <span>🔒 Save Invoice First to Print</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -208,7 +283,7 @@ export default function Billing() {
               <input
                 type="text"
                 value={shopPhone}
-                onChange={(e) => setShopPhone(e.target.value)}
+                onChange={(e) => { setIsInvoiceSaved(false); setShopPhone(e.target.value); }}
                 className="w-full rounded border border-slate-300 p-2 text-xs"
               />
             </div>
@@ -217,7 +292,7 @@ export default function Billing() {
               <input
                 type="text"
                 value={shopEmail}
-                onChange={(e) => setShopEmail(e.target.value)}
+                onChange={(e) => { setIsInvoiceSaved(false); setShopEmail(e.target.value); }}
                 className="w-full rounded border border-slate-300 p-2 text-xs"
               />
             </div>
@@ -226,7 +301,7 @@ export default function Billing() {
               <input
                 type="text"
                 value={shopGstin}
-                onChange={(e) => setShopGstin(e.target.value)}
+                onChange={(e) => { setIsInvoiceSaved(false); setShopGstin(e.target.value); }}
                 className="w-full rounded border border-slate-300 p-2 text-xs"
               />
             </div>
@@ -247,7 +322,7 @@ export default function Billing() {
                 <input
                   type="text"
                   value={salesPerson}
-                  onChange={(e) => setSalesPerson(e.target.value)}
+                  onChange={(e) => { setIsInvoiceSaved(false); setSalesPerson(e.target.value); }}
                   className="w-full rounded border border-slate-300 p-2 text-xs"
                 />
               </div>
@@ -256,7 +331,7 @@ export default function Billing() {
                 <input
                   type="text"
                   value={invoiceNo}
-                  onChange={(e) => setInvoiceNo(e.target.value)}
+                  onChange={(e) => { setIsInvoiceSaved(false); setInvoiceNo(e.target.value); }}
                   className="w-full rounded border border-slate-300 p-2 text-xs font-bold"
                 />
               </div>
@@ -265,7 +340,7 @@ export default function Billing() {
                 <input
                   type="text"
                   value={orderNo}
-                  onChange={(e) => setOrderNo(e.target.value)}
+                  onChange={(e) => { setIsInvoiceSaved(false); setOrderNo(e.target.value); }}
                   placeholder="Optional"
                   className="w-full rounded border border-slate-300 p-2 text-xs"
                 />
@@ -275,7 +350,7 @@ export default function Billing() {
                 <input
                   type="text"
                   value={invoiceDate}
-                  onChange={(e) => setInvoiceDate(e.target.value)}
+                  onChange={(e) => { setIsInvoiceSaved(false); setInvoiceDate(e.target.value); }}
                   className="w-full rounded border border-slate-300 p-2 text-xs"
                 />
               </div>
@@ -293,7 +368,7 @@ export default function Billing() {
                 <input
                   type="text"
                   value={receiver.name}
-                  onChange={(e) => setReceiver({ ...receiver, name: e.target.value })}
+                  onChange={(e) => { setIsInvoiceSaved(false); setReceiver({ ...receiver, name: e.target.value }); }}
                   className="w-full rounded border border-slate-300 p-2 text-xs font-bold"
                 />
               </div>
@@ -302,7 +377,7 @@ export default function Billing() {
                 <input
                   type="text"
                   value={receiver.contact}
-                  onChange={(e) => setReceiver({ ...receiver, contact: e.target.value })}
+                  onChange={(e) => { setIsInvoiceSaved(false); setReceiver({ ...receiver, contact: e.target.value }); }}
                   className="w-full rounded border border-slate-300 p-2 text-xs"
                 />
               </div>
@@ -311,7 +386,7 @@ export default function Billing() {
                 <input
                   type="text"
                   value={receiver.address}
-                  onChange={(e) => setReceiver({ ...receiver, address: e.target.value })}
+                  onChange={(e) => { setIsInvoiceSaved(false); setReceiver({ ...receiver, address: e.target.value }); }}
                   className="w-full rounded border border-slate-300 p-2 text-xs"
                 />
               </div>
@@ -320,12 +395,17 @@ export default function Billing() {
 
         </div>
 
-        {/* Section C: Items Entry Table */}
+        {/* Section C: Items Entry Table (ALL COLUMNS MANUALLY EDITABLE) */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              Sale Items List
-            </h3>
+            <div>
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                Sale Items List (Demo Mode - All Columns Manually Editable)
+              </h3>
+              <p className="text-[11px] text-slate-500">
+                Every field is editable for client demo. Rate entered directly drives Total Amount (e.g. Rate 100 &rarr; Total Amount 100).
+              </p>
+            </div>
             <button
               type="button"
               onClick={handleAddItem}
@@ -344,8 +424,8 @@ export default function Billing() {
                   <th className="p-2 border w-16">HSN</th>
                   <th className="p-2 border w-16">Purity</th>
                   <th className="p-2 border w-20">Gross Wt</th>
-                  <th className="p-2 border w-20">Net Wt</th>
-                  <th className="p-2 border w-24">Rate /GM</th>
+                  <th className="p-2 border w-24">Net Wt</th>
+                  <th className="p-2 border w-28 bg-amber-100 text-amber-900">Rate (Active Calculation)</th>
                   <th className="p-2 border w-24">Making Chg</th>
                   <th className="p-2 border w-20">Hallmark</th>
                   <th className="p-2 border w-28">Total Amount</th>
@@ -355,82 +435,93 @@ export default function Billing() {
               <tbody>
                 {items.map((item, idx) => (
                   <tr key={item.id} className="border-b">
+                    {/* Description (Editable) */}
                     <td className="p-1 border">
                       <input
                         type="text"
                         value={item.description}
                         onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
-                        className="w-full p-1 border rounded"
+                        className="w-full p-1 border rounded bg-white text-slate-800"
                       />
                     </td>
+                    {/* Pcs (Editable) */}
                     <td className="p-1 border">
                       <input
                         type="number"
                         min="1"
                         value={item.pcs}
                         onChange={(e) => handleItemChange(idx, 'pcs', e.target.value)}
-                        className="w-full p-1 border rounded"
+                        className="w-full p-1 border rounded bg-white text-slate-800"
                       />
                     </td>
+                    {/* HSN (Editable) */}
                     <td className="p-1 border">
                       <input
                         type="text"
                         value={item.hsn}
                         onChange={(e) => handleItemChange(idx, 'hsn', e.target.value)}
-                        className="w-full p-1 border rounded"
+                        className="w-full p-1 border rounded bg-white text-slate-800"
                       />
                     </td>
+                    {/* Purity (Editable) */}
                     <td className="p-1 border">
                       <input
                         type="text"
                         value={item.purity}
                         onChange={(e) => handleItemChange(idx, 'purity', e.target.value)}
-                        className="w-full p-1 border rounded"
+                        className="w-full p-1 border rounded bg-white text-slate-800"
                       />
                     </td>
+                    {/* Gross Wt (Editable) */}
                     <td className="p-1 border">
                       <input
                         type="number"
                         step="0.001"
                         value={item.grossWeight}
                         onChange={(e) => handleItemChange(idx, 'grossWeight', e.target.value)}
-                        className="w-full p-1 border rounded"
+                        className="w-full p-1 border rounded bg-white text-slate-800"
                       />
                     </td>
+                    {/* Net Wt (Editable) */}
                     <td className="p-1 border">
                       <input
                         type="number"
                         step="0.001"
                         value={item.netWeight}
                         onChange={(e) => handleItemChange(idx, 'netWeight', e.target.value)}
-                        className="w-full p-1 border rounded"
+                        className="w-full p-1 border rounded bg-white text-slate-800"
                       />
                     </td>
-                    <td className="p-1 border">
+                    {/* Rate (ACTIVE PRICE COLUMN - DRIVES TOTAL) */}
+                    <td className="p-1 border bg-amber-50">
                       <input
                         type="number"
                         value={item.ratePerGm}
                         onChange={(e) => handleItemChange(idx, 'ratePerGm', e.target.value)}
-                        className="w-full p-1 border rounded"
+                        className="w-full p-1 border-2 border-amber-500 rounded font-bold text-amber-900 bg-white"
+                        placeholder="Enter Rate (e.g. 100)"
                       />
                     </td>
+                    {/* Making Chg (Editable) */}
                     <td className="p-1 border">
                       <input
                         type="number"
                         value={item.makingCharge}
                         onChange={(e) => handleItemChange(idx, 'makingCharge', e.target.value)}
-                        className="w-full p-1 border rounded"
+                        className="w-full p-1 border rounded bg-white text-slate-800"
                       />
                     </td>
+                    {/* Hallmark (Editable) */}
                     <td className="p-1 border">
                       <input
                         type="number"
                         value={item.hallmarkCharge}
                         onChange={(e) => handleItemChange(idx, 'hallmarkCharge', e.target.value)}
-                        className="w-full p-1 border rounded"
+                        className="w-full p-1 border rounded bg-white text-slate-800"
                       />
                     </td>
-                    <td className="p-1 border font-bold text-slate-900">
+                    {/* Total Amount (Auto = Rate entered) */}
+                    <td className="p-1 border font-bold text-slate-900 bg-emerald-50/50">
                       ₹{item.totalAmount}
                     </td>
                     <td className="p-1 border text-center">
@@ -449,7 +540,7 @@ export default function Billing() {
           </div>
         </div>
 
-        {/* Section D: Payment Mode & Discounts */}
+        {/* Section D: Payment Mode & Financial Adjustments */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3">
             Payment Mode & Financial Summary
@@ -459,7 +550,7 @@ export default function Billing() {
               <label className="block text-[11px] font-semibold text-slate-600">Payment Mode</label>
               <select
                 value={paymentMode}
-                onChange={(e) => setPaymentMode(e.target.value)}
+                onChange={(e) => { setIsInvoiceSaved(false); setPaymentMode(e.target.value); }}
                 className="w-full rounded border border-slate-300 p-2 text-xs font-bold"
               >
                 <option value="CASH">CASH</option>
@@ -473,7 +564,7 @@ export default function Billing() {
               <input
                 type="number"
                 value={discount}
-                onChange={(e) => setDiscount(e.target.value)}
+                onChange={(e) => { setIsInvoiceSaved(false); setDiscount(e.target.value); }}
                 className="w-full rounded border border-slate-300 p-2 text-xs"
               />
             </div>
@@ -482,7 +573,7 @@ export default function Billing() {
               <input
                 type="number"
                 value={amountReceived}
-                onChange={(e) => setAmountReceived(e.target.value)}
+                onChange={(e) => { setIsInvoiceSaved(false); setAmountReceived(e.target.value); }}
                 className="w-full rounded border border-slate-300 p-2 text-xs font-bold"
               />
             </div>
@@ -491,7 +582,7 @@ export default function Billing() {
               <input
                 type="number"
                 value={advancePayment}
-                onChange={(e) => setAdvancePayment(e.target.value)}
+                onChange={(e) => { setIsInvoiceSaved(false); setAdvancePayment(e.target.value); }}
                 className="w-full rounded border border-slate-300 p-2 text-xs"
               />
             </div>
@@ -500,28 +591,64 @@ export default function Billing() {
               <input
                 type="number"
                 value={oldGoldAmount}
-                onChange={(e) => setOldGoldAmount(e.target.value)}
+                onChange={(e) => { setIsInvoiceSaved(false); setOldGoldAmount(e.target.value); }}
                 className="w-full rounded border border-slate-300 p-2 text-xs"
               />
             </div>
           </div>
 
-          {/* Quick Summary Strip */}
+          {/* Static 3% GST Summary Strip */}
           <div className="mt-4 flex flex-wrap items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-800">
-            <div>Taxable: ₹{taxableAmount} | SGST (1.5%): ₹{sgstAmount} | CGST (1.5%): ₹{cgstAmount}</div>
+            <div>
+              Taxable: ₹{taxableAmount} | <span className="text-blue-700">SGST (1.5%): ₹{sgstAmount}</span> | <span className="text-blue-700">CGST (1.5%): ₹{cgstAmount}</span> | <span className="text-amber-800">Static GST (3% Total): ₹{totalGstAmount}</span>
+            </div>
             <div className="text-base font-black text-amber-600">Grand Total: ₹{grandTotal}</div>
           </div>
         </div>
 
-        {/* Generate Button at bottom */}
-        <div className="flex justify-end pt-2">
-          <button
-            type="button"
-            onClick={() => setIsPreviewModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-6 py-3 text-sm font-extrabold text-slate-950 shadow-md hover:bg-amber-400 transition"
-          >
-            <span>🧾 Generate & Print Bill</span>
-          </button>
+        {/* Save & Generate Buttons Footer Bar */}
+        <div className="flex items-center justify-between pt-2">
+          <div>
+            {!isInvoiceSaved && (
+              <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
+                ⚠️ Click "Save Invoice" first to lock calculations and enable bill printing.
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Save Button */}
+            <button
+              type="button"
+              onClick={handleSaveInvoice}
+              className={`inline-flex items-center gap-2 rounded-lg px-6 py-3 text-xs font-extrabold shadow-md transition ${
+                isInvoiceSaved
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                  : 'bg-amber-500 text-slate-950 hover:bg-amber-400 animate-pulse'
+              }`}
+            >
+              <span>{isInvoiceSaved ? '✅ Invoice Saved' : '💾 Save Invoice'}</span>
+            </button>
+
+            {/* Generate & Print Bill Button (Enabled ONLY when Saved) */}
+            {isInvoiceSaved ? (
+              <button
+                type="button"
+                onClick={() => setIsPreviewModalOpen(true)}
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-xs font-extrabold text-amber-400 shadow-md hover:bg-slate-800 transition"
+              >
+                <span>🧾 Generate & Print Bill</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-200 px-5 py-3 text-xs font-semibold text-slate-400 cursor-not-allowed border border-slate-300"
+              >
+                <span>🔒 Save Invoice First</span>
+              </button>
+            )}
+          </div>
         </div>
 
       </div>
@@ -535,7 +662,7 @@ export default function Billing() {
           {/* Modal Container */}
           <div className="w-full max-w-4xl max-h-[92vh] flex flex-col rounded-xl bg-white shadow-2xl overflow-hidden">
             
-            {/* Modal Header Bar (No Print) */}
+            {/* Modal Header Bar */}
             <div className="no-print flex items-center justify-between border-b border-slate-200 bg-slate-900 px-6 py-3 text-white">
               <div className="flex items-center space-x-2">
                 <span>🧾</span>
@@ -604,7 +731,7 @@ export default function Billing() {
                     </div>
                   </div>
                   <div className="p-1.5 space-y-0.5">
-                    {/* Right side box matching exact bill header */}
+                    {/* Right side placeholder box matching exact bill header */}
                   </div>
                 </div>
 
@@ -747,6 +874,10 @@ export default function Billing() {
                       <span>CGST 1.50%</span>
                       <span>{cgstAmount.toFixed(2)}</span>
                     </div>
+                    <div className="flex justify-between border-t border-slate-300 pt-0.5 font-bold">
+                      <span>STATIC GST 3.00%</span>
+                      <span>{totalGstAmount.toFixed(2)}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -811,7 +942,7 @@ export default function Billing() {
               </div>
             </div>
 
-            {/* Modal Footer (No Print) */}
+            {/* Modal Footer */}
             <div className="no-print flex justify-end gap-3 border-t border-slate-200 bg-white p-4">
               <button
                 type="button"
