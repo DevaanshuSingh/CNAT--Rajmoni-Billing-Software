@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import MetricCard from '../../components/common/MetricCard/MetricCard';
 import StockForm from '../../components/stock/StockForm/StockForm';
 import StockTable from '../../components/stock/StockTable/StockTable';
 import './StockManagement.css';
@@ -8,10 +7,8 @@ import './StockManagement.css';
  * StockManagement Page Component (Item Master & Stock Level Control)
  * 
  * Core module for managing jewelry stock for Rajmoni Jewellers:
- * - Summary metric cards (Total Stock, Low Stock Alert Count, Sold This Month)
  * - Item Master Entry Form (with Minimum Stock Alert threshold)
  * - Stock Inventory Table
- * Folderized with dedicated StockManagement.css
  */
 export default function StockManagement() {
   // Initial Mock Items Data to demonstrate UI state
@@ -66,76 +63,13 @@ export default function StockManagement() {
     }
   };
 
-  // Metric Computations
-  // const totalItemCount = items.length;
-  // const totalStockQuantity = items.reduce((acc, curr) => acc + (curr.stock || 0), 0);
-  // const lowStockCount = items.filter((item) => item.stock <= item.minStock).length;
-  // const totalSoldThisMonth = items.reduce((acc, curr) => acc + (curr.soldThisMonth || 0), 0);
-
   return (
     <div className="stock-management-container space-y-6">
-
-      {/* Page Header */}
-      {/* <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
-        <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Stock Management & Item Master
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Rajmoni Jewellers - Item Master & Minimum Stock Alert Entry System
-          </p>
-        </div>
-      </div> */}
-
-      {/* ------------------------------------------------------------- */}
-      {/* 1. Summary Metrics Cards Row */}
-      {/* ------------------------------------------------------------- */}
-      {/* <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-        <MetricCard
-          title="Total Stock Units"
-          value={totalStockQuantity.toLocaleString()}
-          subtitle={`Across ${totalItemCount} jewelry item master records`}
-          icon="📦"
-          accentColor="border-amber-500"
-        />
-
-        <MetricCard
-          title="Low Stock Alerts"
-          value={lowStockCount}
-          subtitle="Items at or below minimum stock level"
-          icon="🚨"
-          accentColor={lowStockCount > 0 ? "border-rose-500" : "border-emerald-500"}
-        />
-
-        <MetricCard
-          title="Sold This Month"
-          value={totalSoldThisMonth}
-          subtitle="Units sold in current billing period"
-          icon="📈"
-          accentColor="border-blue-500"
-        />
-
-        <MetricCard
-          title="Master Items Count"
-          value={totalItemCount}
-          subtitle="Active catalog items"
-          icon="💎"
-          accentColor="border-purple-500"
-        />
-
-      </div> */}
-
-      {/* ------------------------------------------------------------- */}
-      {/* 2. Stock Entry Form Section (Item Master) */}
-      {/* ------------------------------------------------------------- */}
+      {/* Item Master Form */}
       <StockForm onAddItem={handleAddItem} />
 
-      {/* ------------------------------------------------------------- */}
-      {/* 3. Items Stock Data Table Section */}
-      {/* ------------------------------------------------------------- */}
+      {/* Items Stock Data Table */}
       <StockTable items={items} onDeleteItem={handleDeleteItem} />
-
     </div>
   );
 }
