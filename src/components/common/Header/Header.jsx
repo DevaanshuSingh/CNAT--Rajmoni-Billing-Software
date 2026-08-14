@@ -30,7 +30,7 @@ export default function Header({ onToggleSidebar }) {
 
         {/* Branding Logo & Title */}
         <div className="flex items-center space-x-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500 font-bold text-white shadow-md">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg font-bold text-white text-3xl">
             💎
           </div>
           <div>
@@ -46,11 +46,6 @@ export default function Header({ onToggleSidebar }) {
 
       {/* Right side: Quick Status & Shop Badge */}
       <div className="flex items-center space-x-3">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 border border-emerald-200">
-          <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-          System Ready
-        </span>
-
         {/* Shop Avatar / Profile Label */}
         <div className="flex items-center space-x-2 border-l border-slate-200 pl-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-xs font-semibold text-amber-400">

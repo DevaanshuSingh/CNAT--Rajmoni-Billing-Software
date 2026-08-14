@@ -27,10 +27,10 @@ export default function StockTable({ items = [], onDeleteItem }) {
 
   return (
     <div className="stock-table-card rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      
+
       {/* Table Toolbar Header */}
       <div className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50/50 p-4 sm:flex-row sm:items-center sm:justify-between">
-        
+
         <div>
           <h3 className="text-base font-bold text-slate-900">Stock Inventory List</h3>
           <p className="text-xs text-slate-500">
@@ -40,7 +40,7 @@ export default function StockTable({ items = [], onDeleteItem }) {
 
         {/* Filters & Search */}
         <div className="flex flex-wrap items-center gap-2">
-          
+
           {/* Category Filter */}
           <select
             value={categoryFilter}
@@ -63,9 +63,6 @@ export default function StockTable({ items = [], onDeleteItem }) {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-48 sm:w-64 rounded-lg border border-slate-300 bg-white pl-8 pr-3 py-1.5 text-xs text-slate-700 focus:border-amber-500 focus:outline-none"
             />
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">
-              🔍
-            </span>
           </div>
 
         </div>
@@ -75,7 +72,7 @@ export default function StockTable({ items = [], onDeleteItem }) {
       {/* Table Wrapper (Horizontal Scroll for Responsive Screens) */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm text-slate-600">
-          
+
           {/* Table Header */}
           <thead className="bg-slate-100 text-xs uppercase tracking-wider text-slate-700 font-bold border-b border-slate-200">
             <tr>
@@ -107,9 +104,8 @@ export default function StockTable({ items = [], onDeleteItem }) {
                 return (
                   <tr
                     key={item.id}
-                    className={`hover:bg-slate-50 transition-colors ${
-                      isLowStock ? 'bg-rose-50/40' : ''
-                    }`}
+                    className={`hover:bg-slate-50 transition-colors ${isLowStock ? 'bg-rose-50/40' : ''
+                      }`}
                   >
                     {/* 1. Item Code */}
                     <td className="px-4 py-3 font-mono text-xs font-semibold text-slate-500">

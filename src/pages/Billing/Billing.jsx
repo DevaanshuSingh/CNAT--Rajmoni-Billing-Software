@@ -176,11 +176,8 @@ export default function Billing() {
       {/* ------------------------------------------------------------- */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            Sales Billing & Entry
-          </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Rajmoni Jewellers - Clean sales entry workflow. Click "Generate & Print Bill" to view paper invoice.
+            Clean sales entry workflow. Click "Generate & Print Bill" to view paper invoice.
           </p>
         </div>
 

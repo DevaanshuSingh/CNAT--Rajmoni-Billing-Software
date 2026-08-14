@@ -67,16 +67,16 @@ export default function StockManagement() {
   };
 
   // Metric Computations
-  const totalItemCount = items.length;
-  const totalStockQuantity = items.reduce((acc, curr) => acc + (curr.stock || 0), 0);
-  const lowStockCount = items.filter((item) => item.stock <= item.minStock).length;
-  const totalSoldThisMonth = items.reduce((acc, curr) => acc + (curr.soldThisMonth || 0), 0);
+  // const totalItemCount = items.length;
+  // const totalStockQuantity = items.reduce((acc, curr) => acc + (curr.stock || 0), 0);
+  // const lowStockCount = items.filter((item) => item.stock <= item.minStock).length;
+  // const totalSoldThisMonth = items.reduce((acc, curr) => acc + (curr.soldThisMonth || 0), 0);
 
   return (
     <div className="stock-management-container space-y-6">
-      
+
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
+      {/* <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
             Stock Management & Item Master
@@ -85,19 +85,13 @@ export default function StockManagement() {
             Rajmoni Jewellers - Item Master & Minimum Stock Alert Entry System
           </p>
         </div>
-        <div className="mt-3 sm:mt-0 flex items-center gap-2">
-          <span className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-amber-400">
-            Module Status: Active
-          </span>
-        </div>
-      </div>
+      </div> */}
 
       {/* ------------------------------------------------------------- */}
       {/* 1. Summary Metrics Cards Row */}
       {/* ------------------------------------------------------------- */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        
-        {/* Metric 1: Total Stock Quantity */}
+      {/* <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
         <MetricCard
           title="Total Stock Units"
           value={totalStockQuantity.toLocaleString()}
@@ -106,7 +100,6 @@ export default function StockManagement() {
           accentColor="border-amber-500"
         />
 
-        {/* Metric 2: Low Stock Alerts */}
         <MetricCard
           title="Low Stock Alerts"
           value={lowStockCount}
@@ -115,7 +108,6 @@ export default function StockManagement() {
           accentColor={lowStockCount > 0 ? "border-rose-500" : "border-emerald-500"}
         />
 
-        {/* Metric 3: Sold This Month */}
         <MetricCard
           title="Sold This Month"
           value={totalSoldThisMonth}
@@ -124,7 +116,6 @@ export default function StockManagement() {
           accentColor="border-blue-500"
         />
 
-        {/* Metric 4: Total Categories */}
         <MetricCard
           title="Master Items Count"
           value={totalItemCount}
@@ -133,7 +124,7 @@ export default function StockManagement() {
           accentColor="border-purple-500"
         />
 
-      </div>
+      </div> */}
 
       {/* ------------------------------------------------------------- */}
       {/* 2. Stock Entry Form Section (Item Master) */}
