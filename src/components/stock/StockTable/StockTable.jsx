@@ -143,11 +143,11 @@ export default function StockTable({ items = [], onDeleteItem }) {
                     <td className="px-4 py-3 text-center">
                       {isLowStock ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-xs font-bold text-rose-800 border border-rose-300 animate-pulse">
-                          <span>🚨</span> Low Stock Alert
+                          Low Stock Alert
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-800 border border-emerald-200">
-                          <span>✅</span> Normal
+                          Normal
                         </span>
                       )}
                     </td>

@@ -102,9 +102,6 @@ export default function StockForm({ onAddItem }) {
             <h2 className="text-lg font-bold text-slate-900">Add Jewelry Item</h2>
             <p className="text-xs text-slate-500">Item Master & Minimum Stock Alert Level Entry</p>
           </div>
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700 border border-amber-200">
-            Item Master Form
-          </span>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -174,7 +171,7 @@ export default function StockForm({ onAddItem }) {
             {/* 4. Minimum Stock Quantity (Alert Threshold) */}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Min. Stock Level Alert <span className="text-amber-600 font-semibold">(Threshold)</span>
+                Min. Stock Level Alert
               </label>
               <input
                 type="number"

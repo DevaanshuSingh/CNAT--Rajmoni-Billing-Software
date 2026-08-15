@@ -18,20 +18,29 @@ export default function Billing() {
   // Invoice Saved State (Save button must be clicked before Generate & Print Bill button is enabled)
   const [isInvoiceSaved, setIsInvoiceSaved] = useState(false);
 
+  // Saved snapshot values (frozen on Save click, NOT live-calculated)
+  const [savedTaxable, setSavedTaxable] = useState(0);
+  const [savedSgst, setSavedSgst] = useState(0);
+  const [savedCgst, setSavedCgst] = useState(0);
+  const [savedGstTotal, setSavedGstTotal] = useState(0);
+  const [savedGrandTotal, setSavedGrandTotal] = useState(0);
+  const [savedBalanceAmount, setSavedBalanceAmount] = useState(0);
+  const [savedAmountInWords, setSavedAmountInWords] = useState('');
+
   // ------------------------------------------------------------------
   // 1. Shop Header Info
   // ------------------------------------------------------------------
-  const [shopPhone, setShopPhone] = useState('9830000000 / 9831000000');
+  const [shopPhone, setShopPhone] = useState('1234567890 / 9999999999');
   const [shopEmail, setShopEmail] = useState('rajmonijewellers@gmail.com');
   const [shopGstin, setShopGstin] = useState('19AAAAA0000A1ZR');
 
   // ------------------------------------------------------------------
   // 2. Invoice Meta State
   // ------------------------------------------------------------------
-  const [salesPerson, setSalesPerson] = useState('Rahul Sen');
+  const [salesPerson, setSalesPerson] = useState('');
   const [orderNo, setOrderNo] = useState('');
   const [orderDate, setOrderDate] = useState('');
-  const [invoiceNo, setInvoiceNo] = useState('A000547');
+  const [invoiceNo, setInvoiceNo] = useState('');
   const [invoiceDate, setInvoiceDate] = useState(
     new Date().toISOString().split('T')[0].split('-').reverse().join('/')
   );
@@ -40,24 +49,24 @@ export default function Billing() {
   // 3. Customer Details State
   // ------------------------------------------------------------------
   const [receiver, setReceiver] = useState({
-    name: 'SARBANI DHAR',
-    address: 'MADHYAMGRAM',
-    state: '19',
-    contact: '9876543210',
+    name: '',
+    address: '',
+    state: '',
+    contact: '',
     gstNo: '',
     panNo: '',
-    stateCode: 'STATE CODE-19-WEST BENGAL',
+    stateCode: '',
   });
 
   const [consigneeSameAsReceiver, setConsigneeSameAsReceiver] = useState(true);
   const [consignee, setConsignee] = useState({
-    name: 'SARBANI DHAR',
-    address: 'MADHYAMGRAM',
-    state: '19',
-    contact: '9876543210',
+    name: '',
+    address: '',
+    state: '',
+    contact: '',
     gstNo: '',
     panNo: '',
-    stateCode: 'STATE CODE-19-WEST BENGAL',
+    stateCode: '',
   });
 
   // ------------------------------------------------------------------
@@ -66,19 +75,19 @@ export default function Billing() {
   const [items, setItems] = useState([
     {
       id: 1,
-      description: 'FINGER RING',
-      pcs: 7,
-      hsn: '7113',
-      purity: '22',
-      grossWeight: 6.78,
-      netWeight: 6.78,
-      ratePerGm: 100, // Rate driving item total for client demo
-      value: 100,
+      description: '',
+      pcs: 0,
+      hsn: 0,
+      purity: 0,
+      grossWeight: 0,
+      netWeight: 0,
+      ratePerGm: 0,
+      value: 0,
       diamondCts: 0,
       diamondAmount: 0,
       makingCharge: 0,
       hallmarkCharge: 0,
-      totalAmount: 100, // Matches rate per client instruction (100 -> 100)
+      totalAmount: 0, // Matches rate per client instruction (100 -> 100)
     },
   ]);
 
@@ -87,7 +96,7 @@ export default function Billing() {
   // ------------------------------------------------------------------
   const [paymentMode, setPaymentMode] = useState('CASH');
   const [discount, setDiscount] = useState(0);
-  const [amountReceived, setAmountReceived] = useState(103);
+  const [amountReceived, setAmountReceived] = useState(0);
   const [advancePayment, setAdvancePayment] = useState(0);
   const [oldGoldAmount, setOldGoldAmount] = useState(0);
 
@@ -209,8 +218,24 @@ export default function Billing() {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  // Save Invoice Handler (Locks calculations and enables Print button)
+  // Save Invoice Handler (Freezes calculations into snapshot and enables Print button)
   const handleSaveInvoice = () => {
+    // Freeze current calculated values into saved snapshot
+    const currentSubtotal = items.reduce((sum, item) => sum + (Number(item.totalAmount) || 0), 0);
+    const currentTaxable = Math.max(0, currentSubtotal - (Number(discount) || 0));
+    const currentSgst = Number((currentTaxable * 0.015).toFixed(2));
+    const currentCgst = Number((currentTaxable * 0.015).toFixed(2));
+    const currentGstTotal = Number((currentSgst + currentCgst).toFixed(2));
+    const currentGrandTotal = Math.round(currentTaxable + currentGstTotal);
+    const currentBalance = currentGrandTotal - (Number(amountReceived) || 0) - (Number(advancePayment) || 0) - (Number(oldGoldAmount) || 0);
+
+    setSavedTaxable(currentTaxable);
+    setSavedSgst(currentSgst);
+    setSavedCgst(currentCgst);
+    setSavedGstTotal(currentGstTotal);
+    setSavedGrandTotal(currentGrandTotal);
+    setSavedBalanceAmount(currentBalance);
+    setSavedAmountInWords(numberToWordsIndian(currentGrandTotal));
     setIsInvoiceSaved(true);
   };
 
@@ -227,12 +252,11 @@ export default function Billing() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-4">
         <div>
           <p className="text-xs text-slate-500 mt-1">
-            Rajmoni Jewellers - Every field manually editable for client demo. Click "Save Invoice" to enable printing.
+            Rajmoni Jewellers - Click "Save Invoice" to enable printing.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* 1. Save Invoice Button */}
+        {/* <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={handleSaveInvoice}
@@ -242,10 +266,9 @@ export default function Billing() {
                 : 'bg-amber-500 text-slate-950 hover:bg-amber-400 animate-pulse'
             }`}
           >
-            <span>{isInvoiceSaved ? '✅ Invoice Saved' : '💾 Save Invoice'}</span>
+            <span>{isInvoiceSaved ? 'Invoice Saved' : 'Save Invoice'}</span>
           </button>
 
-          {/* 2. Generate & Print Bill Button (Enabled ONLY after Save Invoice is clicked) */}
           {isInvoiceSaved ? (
             <button
               type="button"
@@ -264,7 +287,7 @@ export default function Billing() {
               <span>🔒 Save Invoice First to Print</span>
             </button>
           )}
-        </div>
+        </div> */}
       </div>
 
       {/* ------------------------------------------------------------- */}
@@ -402,9 +425,6 @@ export default function Billing() {
               <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
                 Sale Items List (Demo Mode - All Columns Manually Editable)
               </h3>
-              <p className="text-[11px] text-slate-500">
-                Every field is editable for client demo. Rate entered directly drives Total Amount (e.g. Rate 100 &rarr; Total Amount 100).
-              </p>
             </div>
             <button
               type="button"
@@ -419,13 +439,13 @@ export default function Billing() {
             <table className="w-full text-left text-xs border border-slate-200">
               <thead className="bg-slate-100 font-bold text-slate-700">
                 <tr>
-                  <th className="p-2 border">Description</th>
+                  <th className="p-2 border">Item</th>
                   <th className="p-2 border w-14">Pcs</th>
                   <th className="p-2 border w-16">HSN</th>
                   <th className="p-2 border w-16">Purity</th>
                   <th className="p-2 border w-20">Gross Wt</th>
                   <th className="p-2 border w-24">Net Wt</th>
-                  <th className="p-2 border w-28 bg-amber-100 text-amber-900">Rate (Active Calculation)</th>
+                  <th className="p-2 border w-28 bg-amber-100 text-amber-900">Rate</th>
                   <th className="p-2 border w-24">Making Chg</th>
                   <th className="p-2 border w-20">Hallmark</th>
                   <th className="p-2 border w-28">Total Amount</th>
@@ -597,12 +617,12 @@ export default function Billing() {
             </div>
           </div>
 
-          {/* Static 3% GST Summary Strip */}
+          {/* Static 3% GST Summary Strip (Shows saved/frozen values after Save, live preview before) */}
           <div className="mt-4 flex flex-wrap items-center justify-between border-t border-slate-100 pt-3 text-xs font-bold text-slate-800">
             <div>
-              Taxable: ₹{taxableAmount} | <span className="text-blue-700">SGST (1.5%): ₹{sgstAmount}</span> | <span className="text-blue-700">CGST (1.5%): ₹{cgstAmount}</span> | <span className="text-amber-800">Static GST (3% Total): ₹{totalGstAmount}</span>
+              Taxable: ₹{isInvoiceSaved ? savedTaxable : taxableAmount} | <span className="text-blue-700">SGST (1.5%): ₹{isInvoiceSaved ? savedSgst : sgstAmount}</span> | <span className="text-blue-700">CGST (1.5%): ₹{isInvoiceSaved ? savedCgst : cgstAmount}</span> | <span className="text-amber-800">Static GST (3% Total): ₹{isInvoiceSaved ? savedGstTotal : totalGstAmount}</span>
             </div>
-            <div className="text-base font-black text-amber-600">Grand Total: ₹{grandTotal}</div>
+            <div className="text-base font-black text-amber-600">Grand Total: ₹{isInvoiceSaved ? savedGrandTotal : grandTotal}</div>
           </div>
         </div>
 
@@ -627,7 +647,7 @@ export default function Billing() {
                   : 'bg-amber-500 text-slate-950 hover:bg-amber-400 animate-pulse'
               }`}
             >
-              <span>{isInvoiceSaved ? '✅ Invoice Saved' : '💾 Save Invoice'}</span>
+              <span>{isInvoiceSaved ? 'Invoice Saved' : 'Save Invoice'}</span>
             </button>
 
             {/* Generate & Print Bill Button (Enabled ONLY when Saved) */}
@@ -637,7 +657,7 @@ export default function Billing() {
                 onClick={() => setIsPreviewModalOpen(true)}
                 className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-6 py-3 text-xs font-extrabold text-amber-400 shadow-md hover:bg-slate-800 transition"
               >
-                <span>🧾 Generate & Print Bill</span>
+                <span>🧾 Print Bill</span>
               </button>
             ) : (
               <button
@@ -645,7 +665,7 @@ export default function Billing() {
                 disabled
                 className="inline-flex items-center gap-2 rounded-lg bg-slate-200 px-5 py-3 text-xs font-semibold text-slate-400 cursor-not-allowed border border-slate-300"
               >
-                <span>🔒 Save Invoice First</span>
+                <span>🔒 Print Bill</span>
               </button>
             )}
           </div>
@@ -848,35 +868,35 @@ export default function Billing() {
                 <div className="border-x border-b border-black grid grid-cols-12 text-[10px]">
                   <div className="col-span-8 p-1.5 border-r border-black space-y-1">
                     <div className="font-bold italic">
-                      {amountInWords}
+                      {savedAmountInWords}
                     </div>
                     <div className="flex items-center gap-4 pt-1 font-bold">
                       <span>MODE OF PAYMENT:</span>
                       <span className="uppercase">{paymentMode}</span>
-                      <span className="ml-auto">{amountReceived.toFixed(2)}</span>
+                      <span className="ml-auto">{Number(amountReceived).toFixed(2)}</span>
                     </div>
                   </div>
 
                   <div className="col-span-4 p-1.5 text-right space-y-0.5 font-bold">
                     <div className="flex justify-between">
                       <span>DISCOUNT</span>
-                      <span>{discount.toFixed(2)}</span>
+                      <span>{Number(discount).toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between border-t border-slate-300 pt-0.5">
                       <span>TAXABLE AMOUNT</span>
-                      <span>{taxableAmount.toFixed(2)}</span>
+                      <span>{savedTaxable.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-[9px] font-normal">
                       <span>SGST 1.50%</span>
-                      <span>{sgstAmount.toFixed(2)}</span>
+                      <span>{savedSgst.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-[9px] font-normal">
                       <span>CGST 1.50%</span>
-                      <span>{cgstAmount.toFixed(2)}</span>
+                      <span>{savedCgst.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between border-t border-slate-300 pt-0.5 font-bold">
-                      <span>STATIC GST 3.00%</span>
-                      <span>{totalGstAmount.toFixed(2)}</span>
+                      <span>GST 3.00%</span>
+                      <span>{savedGstTotal.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -901,7 +921,7 @@ export default function Billing() {
                   <div className="col-span-5 p-1.5 font-bold space-y-1">
                     <div className="flex justify-between">
                       <span>AMOUNT RECEIVED</span>
-                      <span>{amountReceived.toFixed(0)}</span>
+                      <span>{Number(amountReceived).toFixed(0)}</span>
                     </div>
                     <div className="flex justify-between text-slate-700">
                       <span>ADVANCE PAYMENT</span>
@@ -913,11 +933,11 @@ export default function Billing() {
                     </div>
                     <div className="flex justify-between text-slate-700">
                       <span>BALANCE AMOUNT</span>
-                      <span>{balanceAmount}</span>
+                      <span>{savedBalanceAmount}</span>
                     </div>
                     <div className="flex justify-between border-t border-black pt-1 text-xs font-black text-slate-900">
                       <span>GRAND TOTAL</span>
-                      <span>{grandTotal.toFixed(0)}</span>
+                      <span>{savedGrandTotal.toFixed(0)}</span>
                     </div>
                   </div>
 
